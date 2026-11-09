@@ -1,0 +1,33 @@
+# F15 External authorization — Traefik OSS Middleware `forwardAuth` (OSS).
+# Auth decision delegated to go-httpbin: /status/200 allows, /status/403 denies.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata: {name: forward-auth-allow, namespace: traefik-poc}
+spec:
+  forwardAuth: {address: "http://httpbin.traefik-poc.svc.cluster.local/status/200"}
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata: {name: forward-auth-deny, namespace: traefik-poc}
+spec:
+  forwardAuth: {address: "http://httpbin.traefik-poc.svc.cluster.local/status/403"}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata: {name: fauth-allow, namespace: traefik-poc}
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [fauth-allow.traefik.test]
+  rules:
+  - filters: [{type: ExtensionRef, extensionRef: {group: traefik.io, kind: Middleware, name: forward-auth-allow}}]
+    backendRefs: [{name: echo-v1, port: 80}]
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata: {name: fauth-deny, namespace: traefik-poc}
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [fauth-deny.traefik.test]
+  rules:
+  - filters: [{type: ExtensionRef, extensionRef: {group: traefik.io, kind: Middleware, name: forward-auth-deny}}]
+    backendRefs: [{name: echo-v1, port: 80}]

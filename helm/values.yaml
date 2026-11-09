@@ -23,6 +23,13 @@ ports:
     expose:
       default: true
     exposedPort: 443
+  # F66 TCP routing — a raw TCP entrypoint for a Gateway TCP listener/TCPRoute.
+  tcpep:
+    port: 9200
+    protocol: TCP
+    expose:
+      default: true
+    exposedPort: 9200
 # HTTP/connection telemetry. The metrics service is ClusterIP-only.
 metrics:
   prometheus:

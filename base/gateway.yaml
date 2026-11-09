@@ -19,6 +19,15 @@ spec:
       allowedRoutes:
         namespaces:
           from: Same
+    # F66 TCP routing — raw TCP listener on the tcpep entrypoint (9200).
+    - name: tcp
+      protocol: TCP
+      port: 9200
+      allowedRoutes:
+        kinds:
+          - kind: TCPRoute
+        namespaces:
+          from: Same
     # F10 TLS termination — HTTPS listener on the websecure entrypoint (8443).
     - name: https
       protocol: HTTPS

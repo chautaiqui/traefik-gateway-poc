@@ -1,0 +1,16 @@
+# F57 Request buffering — Traefik OSS Middleware `buffering` (maxRequestBodyBytes).
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata: {name: buffering, namespace: traefik-poc}
+spec:
+  buffering: {maxRequestBodyBytes: 1024}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata: {name: buffering, namespace: traefik-poc}
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [buffer.traefik.test]
+  rules:
+  - filters: [{type: ExtensionRef, extensionRef: {group: traefik.io, kind: Middleware, name: buffering}}]
+    backendRefs: [{name: echo-v1, port: 80}]

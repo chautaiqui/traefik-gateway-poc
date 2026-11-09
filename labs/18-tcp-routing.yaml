@@ -1,0 +1,11 @@
+# F66 TCP routing — Gateway API TCPRoute (experimental CRD) to a raw TCP backend.
+apiVersion: gateway.networking.k8s.io/v1alpha2
+kind: TCPRoute
+metadata: {name: tcp-echo, namespace: traefik-poc}
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: tcp}]
+  rules:
+  - backendRefs: [{name: tcp-echo, port: 9000}]
+# OBSERVED (Traefik v3.7.17): the TCP listener reports Conflicted=True(ProtocolConflict)
+# and the TCPRoute is not attached (0 routes); the echo did not round-trip.
+# Recorded as BLOCKED in docs/feature-matrix.csv (needs further config/version work).
