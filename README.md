@@ -11,6 +11,15 @@ A non-invasive Traefik OSS PoC for a Kubernetes cluster already running Envoy Ga
 ## Prerequisites
 Kubernetes, kubectl, Helm 3, curl; network access to Helm chart repository. Gateway API CRDs must already be installed and compatible with Traefik version. Verify CRD versions before upgrading them; do not blindly overwrite Envoy's CRDs.
 
+Traefik v3.7's `kubernetesGateway` provider watches `TLSRoute` and `BackendTLSPolicy` at API version `v1`. These are **not** in the Gateway API *standard* channel, and older experimental releases (e.g. v1.3.0) only serve them at `v1alpha2`/`v1alpha3`. On a fresh cluster install the **experimental** channel at a version that serves `v1` (v1.4.0+; v1.6.1 verified), otherwise the GatewayClass stays `Accepted=Unknown` ("Waiting for controller") and no route is programmed:
+
+```bash
+# server-side apply avoids the >256KB last-applied-configuration limit on httproutes
+kubectl apply --server-side --force-conflicts \
+  -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.6.1/experimental-install.yaml
+```
+On a shared cluster that already runs Envoy Gateway, check the existing CRD channel/versions first and do not downgrade them.
+
 ## Install
 ```bash
 kubectl get gatewayclasses

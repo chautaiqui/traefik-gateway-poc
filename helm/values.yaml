@@ -10,7 +10,8 @@ providers:
 gateway:
   enabled: false
 service:
-  type: ClusterIP
+  spec:
+    type: ClusterIP
 ports:
   web:
     port: 8000
@@ -24,10 +25,9 @@ ports:
     exposedPort: 443
 metrics:
   prometheus: {}
-logs:
-  access:
-    enabled: true
-    format: json
+accessLog:
+  enabled: true
+  format: json
 resources:
   requests:
     cpu: 250m
