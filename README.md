@@ -49,6 +49,21 @@ kubectl apply -f labs/05-ratelimit.yaml
 BASE_URL=http://127.0.0.1:18080 bash tests/smoke.sh
 ```
 
+### Traefik OSS feature labs (06–12)
+```bash
+kubectl apply -f labs/06-compress.yaml        # F39 compression
+# F62 basic auth needs a Secret first:
+htpasswd -nbB poc 'poc123' > /tmp/users        # or: echo "poc:$(openssl passwd -apr1 poc123)" > /tmp/users
+kubectl -n traefik-poc create secret generic basic-auth-users --from-file=users=/tmp/users
+kubectl apply -f labs/07-basicauth.yaml        # F62 basic auth
+kubectl apply -f labs/08-ipallowlist.yaml      # F16 IP allowlist/denylist
+kubectl apply -f labs/09-cors.yaml             # F45 CORS
+kubectl apply -f labs/10-urlrewrite.yaml       # F28 URL rewrite
+kubectl apply -f labs/11-path-routing.yaml     # F35 path/method routing
+kubectl apply -f labs/12-resilience.yaml       # F08 retry + F09 circuit breaker (PARTIAL)
+```
+Verified results and the OSS vs Traefik-Hub classification are recorded in [`docs/feature-matrix.csv`](docs/feature-matrix.csv). Features that require Traefik Hub / enterprise (JWT F13, OIDC F44, JWT-claim authz F43, global rate limit F06) or are architecturally unavailable in OSS (consistent-hash LB F33) are marked `NOT_SUPPORTED`.
+
 Run tests only after their corresponding manifests are applied. For production-like benchmarking, use a dedicated load generator, a consistent network path, separate exposed ports and identical backend resource limits; avoid `kubectl port-forward` for throughput benchmarking.
 
 ## Scoring

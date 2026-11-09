@@ -1,0 +1,20 @@
+# F28 URL rewrite — Gateway API native URLRewrite filter (OSS)
+# Rewrites the matched prefix /old -> /new; echo backend echoes the final path.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: urlrewrite
+  namespace: traefik-poc
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [rewrite.traefik.test]
+  rules:
+  - matches:
+    - path: {type: PathPrefix, value: /old}
+    filters:
+    - type: URLRewrite
+      urlRewrite:
+        path:
+          type: ReplacePrefixMatch
+          replacePrefixMatch: /new
+    backendRefs: [{name: echo-v1, port: 80}]

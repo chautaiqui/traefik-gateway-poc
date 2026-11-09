@@ -1,49 +1,49 @@
 id,feature,priority,implementation_path_candidate,verification,result,notes
 F01,HTTP routing,P0,Gateway API,curl Host echo.traefik.test,PASS,200 from echo-v1; unmatched host ->404. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
 F02,HTTP redirect,P0,Gateway API,curl Host redirect.traefik.test,PASS,301 Location https://redirect.traefik.test/ (RequestRedirect filter). Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
-F03,Load balancing algorithms,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F03,Load balancing algorithms,P0,Traefik CRD / configuration,OSS capability review,PARTIAL,"OSS supports round-robin within a service and weighted round-robin (WRR) across services; other algorithms (least-conn, etc.) not available. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental"
 F04,Weighted traffic splitting,P0,Gateway API,200 req weighted.traefik.test,PASS,90/10 split observed 180:20 of 200 (backendRefs weight). Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
 F05,Local rate limit,P0,Traefik CRD / configuration,40 rapid req ratelimit.traefik.test,PASS,11x200 then 29x429 (Traefik Middleware rateLimit avg5/burst10 via ExtensionRef). Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
-F06,Global rate limit,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F06,Global rate limit,P0,External integration,OSS capability review,NOT_SUPPORTED,OSS rateLimit is per-instance (each replica counts independently); true global/distributed rate limit requires Traefik Hub. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
 F07,HTTP timeouts,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F08,Retry,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F09,Circuit breaker,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F08,Retry,P0,Traefik CRD / configuration,attach retry mw to dead backend,PARTIAL,Middleware retry(attempts3) accepted & attached; dead-backend route returns 503. No-endpoint 503 bypasses retry so attempt-count not isolated; needs a flaky backend for full proof. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
+F09,Circuit breaker,P0,Traefik CRD / configuration,attach circuitBreaker mw,PARTIAL,Middleware circuitBreaker(NetworkErrorRatio>0.30) accepted & attached; dead-backend route returns 503. Trip-state transition not isolated without sustained failing traffic. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
 F10,TLS termination,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F11,Backend TLS,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F12,cert-manager integration,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F13,JWT authentication,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F13,JWT authentication,P0,Traefik CRD / configuration,OSS capability review,NOT_SUPPORTED,No built-in JWT middleware in OSS; requires Traefik Hub (or forwardAuth to an external verifier). Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
 F14,API key authentication,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F15,External authorization,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F16,IP allowlist/denylist,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F17,HTTP/1.1 & HTTP/2,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F16,IP allowlist/denylist,P0,Traefik CRD / configuration,curl ipallow vs ipdeny host,PASS,"Middleware ipAllowList: allow-all ->200, deny range ->403. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental"
+F17,HTTP/1.1 & HTTP/2,P0,Gateway API,curl --http2-prior-knowledge,PASS,"h2c negotiated: http_version=2, code 200. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental"
 F18,Gateway controller metrics,P0,External integration,PromQL on dedicated ServiceMonitor,PASS,"Prometheus scraped traefik_entrypoint_requests_total (sum=201); ServiceMonitor traefik-poc, 15s interval. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental"
 F19,Envoy Proxy metrics,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F20,Proxy access logs,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F20,Proxy access logs,P0,Traefik CRD / configuration,read JSON access log,PASS,accessLog json: structured line with DownstreamStatus/RequestPath/RouterName/ServiceURL fields. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
 F21,Proxy tracing,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F22,Grafana dashboards,P0,External integration,kube-prometheus-stack + dashboard ConfigMap,PARTIAL,"Grafana healthy (v13.3.0), datasource has traefik metrics, dashboard CM 'Traefik Gateway PoC/Performance' provisioned; individual panels not visually confirmed in-session. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental"
-F23,GatewayClass/Gateway management,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F23,GatewayClass/Gateway management,P0,Gateway API,gatewayclass+gateway status,PASS,"GatewayClass Accepted(Handled by Traefik controller); Gateway Accepted+Programmed, 14 attachedRoutes. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental"
 F24,EnvoyProxy customization,P0,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F25,Graceful shutdown/upgrades,P0,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F26,GitOps automation,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F27,Autoscaling and capacity,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F28,URL rewrite,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F28,URL rewrite,P1,Gateway API,curl rewrite.traefik.test/old/x,PASS,Gateway API URLRewrite ReplacePrefixMatch: /old/test123 -> backend saw /new/test123. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
 F29,Request headers,P1,Gateway API,curl Host headers.traefik.test,PASS,RequestHeaderModifier set X-PoC-Gateway:traefik seen at backend. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
 F30,Response headers,P1,Gateway API,curl -D- Host headers.traefik.test,PASS,ResponseHeaderModifier set X-PoC-Response:traefik in response. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
 F31,Request mirroring,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F32,Session persistence,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F33,Consistent hash,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F33,Consistent hash,P1,Traefik CRD / configuration,OSS capability review,NOT_SUPPORTED,OSS load balancing is round-robin / weighted (WRR) only; no consistent-hash balancer. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
 F34,Backend failover,P1,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F35,Backend routing,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F35,Backend routing,P1,Gateway API,curl path.traefik.test /v1 /v2 POST,PASS,"HTTPRoute match: /v1->echo-v1, /v2->echo-v2, method POST->echo-v2. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental"
 F36,External backends,P1,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F37,Connection limit,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F38,gRPC timeouts,P1,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F39,Response compression,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F39,Response compression,P1,Traefik CRD / configuration,curl -H Accept-Encoding gzip,PASS,Middleware compress: Content-Encoding gzip + Vary Accept-Encoding (minResponseBodyBytes=1). Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
 F40,TLS passthrough,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F41,Client mutual TLS,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F42,Backend mutual TLS,P1,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F43,JWT claim authorization,P1,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F44,OIDC authentication,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F45,CORS,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F43,JWT claim authorization,P1,Gap / investigate,OSS capability review,NOT_SUPPORTED,JWT claim-based authorization requires Traefik Hub; not a built-in OSS middleware. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
+F44,OIDC authentication,P1,Traefik CRD / configuration,OSS capability review,NOT_SUPPORTED,OIDC authentication requires Traefik Hub; not built into OSS. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental
+F45,CORS,P1,Traefik CRD / configuration,curl cors + OPTIONS preflight,PASS,"Middleware headers CORS: Access-Control-Allow-Origin echoed for allowed origin, OPTIONS preflight 200, Vary Origin. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental"
 F46,Header/method authorization,P1,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F47,CSRF protection,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F48,gRPC routing,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
@@ -60,7 +60,7 @@ F58,Response override,P2,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate cla
 F59,Direct response,P2,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F60,Fault injection,P2,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F61,Host normalization,P2,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F62,Basic authentication,P2,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F62,Basic authentication,P2,Traefik CRD / configuration,curl -u poc:poc123,PASS,"Middleware basicAuth (secret htpasswd apr1): no cred ->401, poc:poc123 ->200, wrong ->401. Traefik v3.7.17 OSS / kind k8s v1.37.0 / Gateway API v1.6.1 experimental"
 F63,GeoIP authorization,P2,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F64,Credential injection,P2,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F65,HTTP/3,P2,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test

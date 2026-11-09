@@ -1,0 +1,50 @@
+# F16 IP allowlist/denylist — Traefik OSS Middleware `ipAllowList` (v3 rename of ipWhiteList)
+# Two routes to demonstrate both outcomes against the same backend.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ip-allow-all
+  namespace: traefik-poc
+spec:
+  ipAllowList:
+    sourceRange:
+      - 0.0.0.0/0
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: ip-deny
+  namespace: traefik-poc
+spec:
+  ipAllowList:
+    # A range that will NOT contain the proxied client IP -> expect 403.
+    sourceRange:
+      - 10.255.255.0/32
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ipallow
+  namespace: traefik-poc
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [ipallow.traefik.test]
+  rules:
+  - filters:
+    - type: ExtensionRef
+      extensionRef: {group: traefik.io, kind: Middleware, name: ip-allow-all}
+    backendRefs: [{name: echo-v1, port: 80}]
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: ipdeny
+  namespace: traefik-poc
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [ipdeny.traefik.test]
+  rules:
+  - filters:
+    - type: ExtensionRef
+      extensionRef: {group: traefik.io, kind: Middleware, name: ip-deny}
+    backendRefs: [{name: echo-v1, port: 80}]

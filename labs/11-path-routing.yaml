@@ -1,0 +1,19 @@
+# F35 Backend routing — Gateway API path/method matching to different backends (OSS)
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: pathrouting
+  namespace: traefik-poc
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [path.traefik.test]
+  rules:
+  - matches:
+    - path: {type: PathPrefix, value: /v1}
+    backendRefs: [{name: echo-v1, port: 80}]
+  - matches:
+    - path: {type: PathPrefix, value: /v2}
+    backendRefs: [{name: echo-v2, port: 80}]
+  - matches:
+    - method: POST
+    backendRefs: [{name: echo-v2, port: 80}]

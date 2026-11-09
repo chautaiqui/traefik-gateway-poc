@@ -1,0 +1,61 @@
+# F08 Retry + F09 Circuit breaker — Traefik OSS Middlewares.
+# Functional proof needs a flaky/failing backend; here we attach them to a route
+# that points at a non-existent backend port so the behaviour is observable
+# (retry re-attempts, circuit breaker trips to 503) and the config is accepted.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: retry
+  namespace: traefik-poc
+spec:
+  retry:
+    attempts: 3
+    initialInterval: 100ms
+---
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: circuit-breaker
+  namespace: traefik-poc
+spec:
+  circuitBreaker:
+    expression: 'NetworkErrorRatio() > 0.30'
+---
+# Backend Service with no ready endpoints (selector matches nothing) -> upstream errors.
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo-dead
+  namespace: traefik-poc
+spec:
+  selector: {app: does-not-exist}
+  ports:
+  - {port: 80, targetPort: 8080}
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: retry
+  namespace: traefik-poc
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [retry.traefik.test]
+  rules:
+  - filters:
+    - type: ExtensionRef
+      extensionRef: {group: traefik.io, kind: Middleware, name: retry}
+    backendRefs: [{name: echo-dead, port: 80}]
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: circuitbreaker
+  namespace: traefik-poc
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [cb.traefik.test]
+  rules:
+  - filters:
+    - type: ExtensionRef
+      extensionRef: {group: traefik.io, kind: Middleware, name: circuit-breaker}
+    backendRefs: [{name: echo-dead, port: 80}]
