@@ -19,3 +19,15 @@ spec:
       allowedRoutes:
         namespaces:
           from: Same
+    # F10 TLS termination — HTTPS listener on the websecure entrypoint (8443).
+    - name: https
+      protocol: HTTPS
+      port: 8443
+      tls:
+        mode: Terminate
+        certificateRefs:
+          - kind: Secret
+            name: tls-traefik
+      allowedRoutes:
+        namespaces:
+          from: Same

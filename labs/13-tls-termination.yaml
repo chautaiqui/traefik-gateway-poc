@@ -1,0 +1,15 @@
+# F10 TLS termination — HTTPRoute bound to the HTTPS listener (Gateway listener `https`).
+# Requires Secret `tls-traefik` (kubernetes.io/tls) and the https listener in base/gateway.yaml.
+#   openssl req -x509 -newkey rsa:2048 -nodes -keyout tls.key -out tls.crt \
+#     -days 365 -subj "/CN=tls.traefik.test" -addext "subjectAltName=DNS:tls.traefik.test"
+#   kubectl -n traefik-poc create secret tls tls-traefik --cert=tls.crt --key=tls.key
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: tls-echo
+  namespace: traefik-poc
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: https}]
+  hostnames: [tls.traefik.test]
+  rules:
+  - backendRefs: [{name: echo-v1, port: 80}]

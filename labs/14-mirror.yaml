@@ -1,0 +1,20 @@
+# F31 Request mirroring — Gateway API native RequestMirror filter (OSS).
+# Main traffic -> echo-v1; a copy is mirrored to echo-v2 (response discarded).
+# Verify by watching echo-v2 logs for the mirrored path.
+# OBSERVED (Traefik v3.7.17): route is Accepted/ResolvedRefs but requests return
+# HTTP 500 at runtime (ServiceName None) -> RequestMirror not functional via
+# kubernetesGateway in this version. Recorded as FAIL in docs/feature-matrix.csv.
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: mirror
+  namespace: traefik-poc
+spec:
+  parentRefs: [{name: traefik-poc, sectionName: http}]
+  hostnames: [mirror.traefik.test]
+  rules:
+  - filters:
+    - type: RequestMirror
+      requestMirror:
+        backendRef: {name: echo-v2, port: 80}
+    backendRefs: [{name: echo-v1, port: 80}]
