@@ -8,3 +8,11 @@
 6. Mark any 503, 429, timeout and client-side errors separately. Compare successful throughput, not just total requests.
 7. Run 3+ repeats, store raw output and manifests in versioned result folders. Do not commit secrets or raw PII logs.
 8. Repeat with 1 and 2 gateway replicas; check HPA, disruption and recovery separately.
+
+## Observability add-on
+
+- Traefik dashboard via local port-forward confirms active routers/middlewares/services.
+- Prometheus ServiceMonitor scrapes the dedicated Traefik metrics Service every 15 seconds.
+- Grafana dashboard includes RPS, 5xx, response distribution, p95/p99 latency, CPU, RAM, open connections.
+- Validate that Prometheus target is UP before executing a benchmark; use the same sampling/window for Envoy.
+- Treat service monitor labels, benchmark request status, and backend saturation as separate evidence.

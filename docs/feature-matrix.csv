@@ -1,9 +1,9 @@
 id,feature,priority,implementation_path_candidate,verification,result,notes
-F01,HTTP routing,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F02,HTTP redirect,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F01,HTTP routing,P0,Gateway API,curl Host echo.traefik.test,PASS,200 from echo-v1; unmatched host ->404. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
+F02,HTTP redirect,P0,Gateway API,curl Host redirect.traefik.test,PASS,301 Location https://redirect.traefik.test/ (RequestRedirect filter). Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
 F03,Load balancing algorithms,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F04,Weighted traffic splitting,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F05,Local rate limit,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F04,Weighted traffic splitting,P0,Gateway API,200 req weighted.traefik.test,PASS,90/10 split observed 180:20 of 200 (backendRefs weight). Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
+F05,Local rate limit,P0,Traefik CRD / configuration,40 rapid req ratelimit.traefik.test,PASS,11x200 then 29x429 (Traefik Middleware rateLimit avg5/burst10 via ExtensionRef). Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
 F06,Global rate limit,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F07,HTTP timeouts,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F08,Retry,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
@@ -16,19 +16,19 @@ F14,API key authentication,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIE
 F15,External authorization,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F16,IP allowlist/denylist,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F17,HTTP/1.1 & HTTP/2,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F18,Gateway controller metrics,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F18,Gateway controller metrics,P0,External integration,PromQL on dedicated ServiceMonitor,PASS,"Prometheus scraped traefik_entrypoint_requests_total (sum=201); ServiceMonitor traefik-poc, 15s interval. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental"
 F19,Envoy Proxy metrics,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F20,Proxy access logs,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F21,Proxy tracing,P0,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F22,Grafana dashboards,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F22,Grafana dashboards,P0,External integration,kube-prometheus-stack + dashboard ConfigMap,PARTIAL,"Grafana healthy (v13.3.0), datasource has traefik metrics, dashboard CM 'Traefik Gateway PoC/Performance' provisioned; individual panels not visually confirmed in-session. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental"
 F23,GatewayClass/Gateway management,P0,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F24,EnvoyProxy customization,P0,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F25,Graceful shutdown/upgrades,P0,Gap / investigate,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F26,GitOps automation,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F27,Autoscaling and capacity,P0,External integration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F28,URL rewrite,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F29,Request headers,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
-F30,Response headers,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
+F29,Request headers,P1,Gateway API,curl Host headers.traefik.test,PASS,RequestHeaderModifier set X-PoC-Gateway:traefik seen at backend. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
+F30,Response headers,P1,Gateway API,curl -D- Host headers.traefik.test,PASS,ResponseHeaderModifier set X-PoC-Response:traefik in response. Traefik v3.7.17 / GatewayClass traefik.io/gateway-controller / kind k8s v1.37.0 / Gateway API CRDs v1.6.1 experimental
 F31,Request mirroring,P1,Gateway API,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F32,Session persistence,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test
 F33,Consistent hash,P1,Traefik CRD / configuration,NOT_TESTED,NOT_VERIFIED,Candidate classification only; do not count as supported before test

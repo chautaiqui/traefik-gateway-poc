@@ -21,6 +21,10 @@ kubectl apply --server-side --force-conflicts \
 On a shared cluster that already runs Envoy Gateway, check the existing CRD channel/versions first and do not downgrade them.
 
 ## Install
+
+Hướng dẫn cài đặt & cấu hình đầy đủ (tạo cluster kind, Gateway API CRDs, Helm values,
+monitoring, xử lý sự cố): [`docs/setup-guide.md`](docs/setup-guide.md).
+
 ```bash
 kubectl get gatewayclasses
 kubectl get crd gateways.gateway.networking.k8s.io -o yaml | head
@@ -58,3 +62,46 @@ Each feature starts NOT_VERIFIED. Only change `result` to PASS after storing the
 - Keep existing Envoy resources intact.
 
 Official docs: https://doc.traefik.io/traefik/reference/routing-configuration/kubernetes/gateway-api/
+
+## Traefik Dashboard + Prometheus / Grafana (patch)
+
+The dashboard is exposed **only via local port-forward of the ClusterIP service**.
+The dashboard is read-only operational visibility, not a GUI to edit Gateway API manifests.
+Prometheus Operator installs separately in namespace `traefik-monitoring`; it is not a
+replacement for any existing Envoy monitoring stack.
+
+```bash
+# Before installation check whether your cluster already has Prometheus Operator CRDs.
+kubectl get crd servicemonitors.monitoring.coreos.com || true
+# Install monitoring FIRST, so ServiceMonitor CRDs exist for the Traefik chart:
+bash scripts/install-monitoring.sh
+bash scripts/monitoring-status.sh
+
+# terminal 1: browser URL http://dashboard.traefik.test:18081/dashboard/
+# Add 127.0.0.1 dashboard.traefik.test to the browser machine's hosts file.
+bash scripts/open-dashboard.sh
+
+# terminal 2: browser URL http://127.0.0.1:3000
+bash scripts/open-grafana.sh
+
+# terminal 3: Prometheus http://127.0.0.1:9090
+kubectl -n traefik-monitoring port-forward svc/traefik-monitoring-kube-pr-prometheus 9090:9090
+```
+
+Grafana dashboard: **Traefik Gateway PoC / Performance**. Graphs: RPS, per-status request
+rate, p95/p99, CPU, RAM, active connections, 5xx. Query `up` / inspect **Status > Targets**
+first. Metric names/labels can vary by Traefik/chart version; inspect Prometheus `/api/v1/label/__name__/values`
+and adjust dashboards if any panel is empty. A blank panel is **not** evidence of zero traffic.
+
+### Restrictions / existing stack
+
+- Namespace `traefik-monitoring` deploys a separate Prometheus Operator/Grafana; avoid installing
+  another operator if you already share monitoring CRDs and want centralized monitoring.
+- Monitoring stack creates cluster-scoped CRDs (and node-exporter DaemonSet). Review with cluster admin.
+- Both dashboard and Grafana are internal ClusterIP services, not published on public listeners.
+- Do not use port-forward for load benchmarks: use real traffic from a load generator.
+- Reuse your existing Prometheus/Grafana instead if it is already installed by setting the
+  appropriate ServiceMonitor label in `helm/values.yaml` and skipping installation of
+  `traefik-monitoring` stack.
+- Pin chart versions after validation; these example Helm install scripts use the latest compatible chart.
+- Do not run `helm uninstall` against an existing monitoring release. No Envoy resources are modified.
